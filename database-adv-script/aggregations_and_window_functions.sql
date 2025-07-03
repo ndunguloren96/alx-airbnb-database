@@ -1,3 +1,5 @@
+-- aggregations_and_window_functions.sql
+
 -- This script demonstrates the use of aggregation and window functions.
 -- Assumes the existence of Users, Bookings, and Properties tables.
 
@@ -21,9 +23,12 @@ GROUP BY
 ORDER BY
     total_bookings DESC;
 
--- 2. Window Function (RANK): Rank properties based on the total number of bookings they have received.
+-- 2. Window Function (ROW_NUMBER): Rank properties based on the total number of bookings they have received.
 -- This query first calculates the total bookings for each property in a CTE (Common Table Expression),
--- then uses the RANK() window function to assign a rank based on booking count.
+-- then uses the ROW_NUMBER() window function to assign a unique rank based on booking count.
+-- ROW_NUMBER() assigns a sequential integer to each row within its partition (in this case, the entire result set),
+-- starting with 1 for the first row in the order specified. If there are ties in total_bookings,
+-- ROW_NUMBER() will assign arbitrary but unique ranks, unlike RANK() which assigns the same rank to ties.
 WITH PropertyBookings AS (
     SELECT
         p.property_id,
@@ -40,8 +45,8 @@ SELECT
     property_id,
     title,
     total_bookings,
-    RANK() OVER (ORDER BY total_bookings DESC) AS property_rank
+    ROW_NUMBER() OVER (ORDER BY total_bookings DESC) AS property_rank
 FROM
-    PropertyBookings;
-
-
+    PropertyBookings
+ORDER BY
+    property_rank ASC; -- Order by the new rank to see the ranking clearly
